@@ -327,13 +327,14 @@ export class GeminiApiClient {
 		if (systemPrompt) {
 			contents.unshift({ role: "user", parts: [{ text: systemPrompt }] });
 		}
+		// console.log("env:",  this.env);
 
 		// Check if this is a thinking model and which thinking mode to use
 		const isThinkingModel = geminiCliModels[modelId]?.thinking || false;
-		const isRealThinkingEnabled = this.env.ENABLE_REAL_THINKING === "true";
-		const isFakeThinkingEnabled = this.env.ENABLE_FAKE_THINKING === "true";
-		const streamThinkingAsContent = this.env.STREAM_THINKING_AS_CONTENT === "true";
-		const includeReasoning = options?.includeReasoning || false;
+		const isRealThinkingEnabled = true //this.env.ENABLE_REAL_THINKING === "true";
+		const isFakeThinkingEnabled = false //this.env.ENABLE_FAKE_THINKING === "true";
+		const streamThinkingAsContent = true //this.env.STREAM_THINKING_AS_CONTENT === "true";
+		const includeReasoning = true //options?.includeReasoning || false;
 
 		const req = {
 			thinking_budget: options?.thinkingBudget,
