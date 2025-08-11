@@ -29,7 +29,26 @@ OpenAIRoute.get("/models", async (c) => {
 
 // Chat completions endpoint
 OpenAIRoute.post("/chat/completions", async (c) => {
+	const authHeader = c.req.header('Authorization')
+
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return c.text('Unauthorized', 401)
+	}
+
+
+	const token = authHeader.substring(7)
+	c.env.OPENAI_API_KEY = token
+	c.env.GCP_SERVICE_ACCOUNT = JSON.stringify({
+		"access_token": c.req.header('X-Access-Token'),
+		"scope": "https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/userinfo.email",
+		"token_type": "Bearer",
+		"id_token": c.req.header('X-Id-Token'),
+		"expiry_date": c.req.header('X-Expiry-Date'),
+		"refresh_token": c.req.header('X-Refresh-Token')
+	})
 	try {
+
+
 		console.log("Chat completions request received");
 		const body = await c.req.json<ChatCompletionRequest>();
 		const model = body.model || DEFAULT_MODEL;

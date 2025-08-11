@@ -5,7 +5,7 @@ This document provides instructions for running the Gemini CLI OpenAI Worker in 
 ## Prerequisites
 
 - Docker and Docker Compose installed on your system
-- A `.dev.vars` file with your environment variables (copy from `.dev.vars.example`)
+- A `.env` file with your environment variables (copy from `.env.example` if it exists)
 
 ## Quick Start
 
@@ -17,8 +17,8 @@ This document provides instructions for running the Gemini CLI OpenAI Worker in 
 
 2. **Create your environment file:**
    ```bash
-   cp .dev.vars.example .dev.vars
-   # Edit .dev.vars with your actual credentials
+   cp .env.example .env
+   # Edit .env with your actual credentials
    ```
 
 3. **Start the development environment:**
@@ -66,7 +66,7 @@ This document provides instructions for running the Gemini CLI OpenAI Worker in 
 
 ### Environment Variables
 
-Your `.dev.vars` file is automatically loaded by `wrangler dev` inside the container. The following variables are supported:
+Your `.env` file is automatically loaded by Docker Compose. The following variables are supported:
 
 - `GOOGLE_OAUTH_CREDS_JSON`: Required Google OAuth credentials
 - `GEMINI_PROJECT_ID`: Optional Google Cloud Project ID
@@ -161,12 +161,12 @@ curl http://localhost:8787/v1/token-test
 
 ### Environment Variables Not Working
 
-1. **Verify .dev.vars exists:**
+1. **Verify .env exists:**
    ```bash
-   ls -la .dev.vars
+   ls -la .env
    ```
 
-2. **Check .dev.vars format:**
+2. **Check .env format:**
    - No spaces around the `=`
    - No quotes unless part of the value
    - JSON values should be on one line
@@ -174,7 +174,7 @@ curl http://localhost:8787/v1/token-test
 3. **Test environment inside container:**
    ```bash
    npm run docker:shell
-   cat .dev.vars
+   cat .env
    ```
 
 ### KV Data Issues
@@ -229,7 +229,7 @@ This Docker setup is designed for **local development only**. For production dep
 
 ## Security Notes
 
-- `.dev.vars` is gitignored and should never be committed
+- `.env` is gitignored and should never be committed
 - Docker containers run with standard user permissions
 - KV data is stored locally and not encrypted at rest
 - Use HTTPS in production with proper SSL certificates

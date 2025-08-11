@@ -5,9 +5,10 @@ import {
 	OAUTH_CLIENT_ID,
 	OAUTH_CLIENT_SECRET,
 	OAUTH_REFRESH_URL,
-	TOKEN_BUFFER_TIME,
-	KV_TOKEN_KEY
+	TOKEN_BUFFER_TIME
 } from "./config";
+
+const KV_TOKEN_KEY = "gemini_cli_oauth_token";
 
 // Auth-related interfaces
 interface TokenRefreshResponse {
@@ -52,17 +53,10 @@ export class AuthManager {
 		}
 
 		try {
-			// First, try to get a cached token from KV storage
-			let cachedTokenData = null;
-
-			try {
-				const cachedToken = await this.env.GEMINI_CLI_KV.get(KV_TOKEN_KEY, "json");
-				if (cachedToken) {
-					cachedTokenData = cachedToken as CachedTokenData;
-					console.log("Found cached token in KV storage");
-				}
-			} catch (kvError) {
-				console.log("No cached token found in KV storage or KV error:", kvError);
+			// First, try to get a cached token from memory
+			const cachedTokenData: CachedTokenData | null = await this.getCachedTokenFromStore();
+			if (cachedTokenData) {
+				console.log("Found cached token in memory");
 			}
 
 			// Check if cached token is still valid (with buffer)
@@ -140,53 +134,40 @@ export class AuthManager {
 	}
 
 	/**
-	 * Cache the access token in KV storage.
-	 */
-	private async cacheTokenInKV(accessToken: string, expiryDate: number): Promise<void> {
-		try {
-			const tokenData = {
-				access_token: accessToken,
-				expiry_date: expiryDate,
-				cached_at: Date.now()
-			};
+		* Cache the access token in KV storage.
+		*/
+	private kvStore: Map<string, string> = new Map();
 
-			// Cache for slightly less than the token expiry to be safe
-			const ttlSeconds = Math.floor((expiryDate - Date.now()) / 1000) - 300; // 5 minutes buffer
-
-			if (ttlSeconds > 0) {
-				await this.env.GEMINI_CLI_KV.put(KV_TOKEN_KEY, JSON.stringify(tokenData), {
-					expirationTtl: ttlSeconds
-				});
-				console.log(`Token cached in KV storage with TTL of ${ttlSeconds} seconds`);
-			} else {
-				console.log("Token expires too soon, not caching in KV");
-			}
-		} catch (kvError) {
-			console.error("Failed to cache token in KV storage:", kvError);
-			// Don't throw an error here as the token is still valid, just not cached
-		}
+	private async getCachedTokenFromStore(): Promise<CachedTokenData | null> {
+		const cachedToken = this.kvStore.get(KV_TOKEN_KEY);
+		return cachedToken ? JSON.parse(cachedToken) : null;
 	}
 
+	private cacheTokenInKV = async (accessToken: string, expiryDate: number): Promise<void> => {
+		const tokenData = {
+			access_token: accessToken,
+			expiry_date: expiryDate,
+			cached_at: Date.now()
+		};
+		this.kvStore.set(KV_TOKEN_KEY, JSON.stringify(tokenData));
+		console.log("Token cached in memory");
+	};
+
 	/**
-	 * Clear cached token from KV storage.
-	 */
+		* Clear cached token from KV storage.
+		*/
 	public async clearTokenCache(): Promise<void> {
-		try {
-			await this.env.GEMINI_CLI_KV.delete(KV_TOKEN_KEY);
-			console.log("Cleared cached token from KV storage");
-		} catch (kvError) {
-			console.log("Error clearing KV cache:", kvError);
-		}
+		this.kvStore.delete(KV_TOKEN_KEY);
+		console.log("Cleared cached token from memory");
 	}
 
 	/**
-	 * Get cached token info from KV storage.
-	 */
+		* Get cached token info from KV storage.
+		*/
 	public async getCachedTokenInfo(): Promise<TokenCacheInfo> {
 		try {
-			const cachedToken = await this.env.GEMINI_CLI_KV.get(KV_TOKEN_KEY, "json");
-			if (cachedToken) {
-				const tokenData = cachedToken as CachedTokenData;
+			const tokenData = await this.getCachedTokenFromStore();
+			if (tokenData) {
 				const timeUntilExpiry = tokenData.expiry_date - Date.now();
 
 				return {

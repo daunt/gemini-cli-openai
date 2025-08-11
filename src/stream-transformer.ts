@@ -1,3 +1,15 @@
+if (typeof TextDecoderStream === 'undefined') {
+    global.TextDecoderStream = class TextDecoderStream extends TransformStream {
+        constructor(encoding = 'utf-8') {
+            const decoder = new TextDecoder(encoding);
+            super({
+                transform(chunk, controller) {
+                    controller.enqueue(decoder.decode(chunk));
+                }
+            });
+        }
+    };
+}
 import { StreamChunk, ReasoningData, GeminiFunctionCall, UsageData } from "./types";
 import { NativeToolResponse } from "./types/native-tools";
 import { OPENAI_CHAT_COMPLETION_OBJECT } from "./config";

@@ -6,6 +6,15 @@ import { Env } from "../types";
  * Checks for 'Authorization: Bearer <key>' header on protected routes.
  */
 export const openAIApiKeyAuth: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
+	const authHeader = c.req.header('Authorization')
+
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return c.text('Unauthorized', 401)
+	}
+
+
+	const token = authHeader.substring(7)
+	c.env.OPENAI_API_KEY = token
 	// Skip authentication for public endpoints
 	const publicEndpoints = ["/", "/health"];
 	if (publicEndpoints.some((endpoint) => c.req.path === endpoint)) {

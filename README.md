@@ -117,7 +117,7 @@ kv_namespaces = [
 
 ### Step 3: Environment Setup
 
-Create a `.dev.vars` file:
+Create a `.env` file:
 ```bash
 # Required: OAuth2 credentials JSON from Gemini CLI authentication
 GCP_SERVICE_ACCOUNT={"access_token":"ya29...","refresh_token":"1//...","scope":"...","token_type":"Bearer","id_token":"eyJ...","expiry_date":1750927763467}
@@ -488,7 +488,7 @@ const response = await fetch('/v1/chat/completions', {
 
 ## 🛡️ Content Safety Settings
 
-Configure Gemini's built-in safety filters using environment variables in the dev.vars:
+Configure Gemini's built-in safety filters using environment variables in the .env:
 
 ```bash
 # Safety threshold options: BLOCK_NONE, BLOCK_FEW, BLOCK_SOME, BLOCK_ONLY_HIGH, HARM_BLOCK_THRESHOLD_UNSPECIFIED

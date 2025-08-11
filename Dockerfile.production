@@ -1,0 +1,50 @@
+# Dockerfile for Gemini CLI OpenAI Worker (Production with Bun)
+
+# ---- Base Stage ----
+# Start with a slim base image for a smaller footprint
+FROM oven/bun:1.0-slim AS base
+
+# ---- Builder Stage ----
+# This stage installs dependencies and builds the application
+FROM base AS builder
+WORKDIR /app
+
+# Copy package files and install dependencies with bun
+COPY package.json bun.lock ./
+RUN bun install
+
+# Copy the rest of the application source code
+COPY . .
+
+# Build the application with bun
+RUN bun run build
+
+# ---- Production Stage ----
+# This is the final, optimized image
+FROM base AS production
+
+# Create a non-root user for enhanced security
+# RUN groupadd -g 1001 bun && \
+#     useradd -r -u 1001 -g bun bun
+
+WORKDIR /app
+
+# Copy built artifacts and production dependencies from the builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+
+# Set correct ownership for the app directory
+RUN chown -R bun:bun /app
+
+# Switch to the non-root user
+USER bun
+
+EXPOSE 8787
+
+# Health check to ensure the service is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8787/health || exit 1
+
+# Command to run the worker using bun
+CMD ["bun", "dist/index.js"]

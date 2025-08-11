@@ -53,6 +53,14 @@ app.route("/v1", DebugRoute);
 
 // Root endpoint - basic info about the service
 app.get("/", (c) => {
+	const authHeader = c.req.header('Authorization')
+
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return c.text('Unauthorized', 401)
+	}
+
+	const token = authHeader.substring(7) // hapus "Bearer "
+	c.env.OPENAI_API_KEY = token
 	const requiresAuth = !!c.env.OPENAI_API_KEY;
 
 	return c.json({
@@ -81,4 +89,11 @@ app.get("/health", (c) => {
 	return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-export default app;
+const port = 8787;
+
+console.log(`Server is running on http://localhost:${port}`);
+
+export default {
+    port,
+    fetch: app.fetch,
+};

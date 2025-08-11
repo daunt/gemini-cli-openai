@@ -9,7 +9,6 @@ export const OAUTH_REFRESH_URL = "https://oauth2.googleapis.com/token";
 
 // --- Token Management ---
 export const TOKEN_BUFFER_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
-export const KV_TOKEN_KEY = "oauth_token_cache";
 
 // --- OpenAI API Constants ---
 export const OPENAI_CHAT_COMPLETION_OBJECT = "chat.completion.chunk";
